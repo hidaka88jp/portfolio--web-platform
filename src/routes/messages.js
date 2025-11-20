@@ -3,7 +3,7 @@ import prisma from "../../prisma/prismaClient.js";
 
 const router = express.Router();
 
-// 認証ヘルパー
+// authenticated helper
 async function getUserIdFromToken(token) {
   if (!token) return null;
 
@@ -17,7 +17,7 @@ async function getUserIdFromToken(token) {
   return session.userId;
 }
 
-// POST /messages (認証付き)
+// POST /messages (authenticated)
 router.post("/", async (req, res) => {
   const token = req.headers.authorization; // ← Next.js から送ってもらう
   const userId = await getUserIdFromToken(token);
@@ -40,6 +40,20 @@ router.post("/", async (req, res) => {
   });
 
   return res.json(newMessage);
+});
+
+// GET /messages（for top page）
+router.get("/", async (req, res) => {
+  const messages = await prisma.message.findMany({
+    include: {
+      user: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return res.json(messages);
 });
 
 export default router;

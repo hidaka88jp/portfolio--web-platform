@@ -46,7 +46,12 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   const messages = await prisma.message.findMany({
     include: {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          name: true
+        }
+      }
     },
     orderBy: {
       createdAt: "desc",
@@ -78,6 +83,5 @@ router.get("/user", async (req, res) => {
 
   res.json(messages);
 });
-
 
 export default router;

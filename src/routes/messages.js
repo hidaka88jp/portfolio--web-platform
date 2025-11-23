@@ -63,25 +63,19 @@ router.get("/", async (req, res) => {
 
 // GET /messages/user
 router.get("/user", async (req, res) => {
-  const { token } = req.query;
-  if (!token) return res.status(401).json({ error: "No token" });
+  const token = req.headers.authorization;
+  const userId = await getUserIdFromToken(token);
 
-  const session = await prisma.session.findUnique({
-    where: { id: token },
-  });
-
-  if (!session) return res.status(401).json({ error: "Invalid session" });
+  if (!userId) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
 
   const messages = await prisma.message.findMany({
-    where: {
-      userId: session.userId,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
+    where: { userId },
+    orderBy: { createdAt: "desc" },
   });
 
-  res.json(messages);
+  return res.json(messages);
 });
 
 // DELETE /messages/:id

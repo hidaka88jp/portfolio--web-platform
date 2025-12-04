@@ -1,5 +1,6 @@
 import express from "express";
 import prisma from "../../prisma/prismaClient.js";
+import xss from "xss";
 
 const router = express.Router();
 
@@ -19,7 +20,7 @@ async function getUserIdFromToken(token) {
 
 // POST /messages (authenticated)
 router.post("/", async (req, res) => {
-  const token = req.headers.authorization; // ← Next.js から送ってもらう
+  const token = req.headers.authorization;
   const userId = await getUserIdFromToken(token);
 
   if (!userId) {
@@ -32,9 +33,11 @@ router.post("/", async (req, res) => {
     return res.status(400).json({ error: "message is required" });
   }
 
+  const safeMessage = xss(message);
+
   const newMessage = await prisma.message.create({
     data: {
-      message,
+      message: safeMessage,
       userId,
     },
   });
@@ -139,11 +142,13 @@ router.patch("/:id", async (req, res) => {
     return res.status(403).json({ error: "Forbidden" });
   }
 
+  const safeMessage = xss(message);
+
   // Update message
   const updated = await prisma.message.update({
     where: { id: messageId },
     data: {
-      message,
+      message: safeMessage,
     },
   });
 

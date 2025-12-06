@@ -3,9 +3,9 @@ import prisma from "../../prisma/prismaClient.js";
 
 const router = express.Router();
 
-// GET /sessions/validate?token=xxxxx
-router.get("/validate", async (req, res) => {
-  let token = req.query.token;
+// POST /sessions/validate with Authorization header
+router.post("/validate", async (req, res) => {
+  let token = req.headers.authorization;
 
   // ① token が存在するか
   if (!token) {
